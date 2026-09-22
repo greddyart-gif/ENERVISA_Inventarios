@@ -1,5 +1,884 @@
 <!DOCTYPE html>
 <html>
-<head><title>ENERVISA Inventarios</title></head>
-<body><h1>Hola, en construcción</h1></body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Registro de Movimientos - ENERVISA</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --azul-oscuro: #082a52;
+      --azul: #0854a0;
+      --azul-medio: #1a73c1;
+      --azul-claro: #eaf1f8;
+      --gris-panel: #eef1f4;
+      --gris-borde: #c9d2db;
+      --dorado: #e9a02c;
+      --dorado-oscuro: #c9860f;
+      --verde: #1e7e34;
+      --rojo: #b02a2a;
+      --gris: #6b7280;
+      --texto: #16232f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: var(--azul-oscuro);
+      background-image:
+        linear-gradient(135deg, rgba(255,255,255,.06) 25%, transparent 25%, transparent 50%,
+          rgba(255,255,255,.06) 50%, rgba(255,255,255,.06) 75%, transparent 75%, transparent),
+        linear-gradient(160deg, var(--azul) 0%, var(--azul-oscuro) 65%);
+      background-size: 34px 34px, 100% 100%;
+      margin: 0;
+      padding: 0 0 30px;
+      color: var(--texto);
+      min-height: 100vh;
+    }
+
+    /* ---------- Pantalla de inicio de sesion ---------- */
+    .pantalla-login {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-caja {
+      background: #fff;
+      max-width: 380px;
+      width: 100%;
+      padding: 30px 26px;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      border-top: 4px solid var(--dorado);
+      text-align: center;
+    }
+    .login-caja h1 {
+      font-size: 18px;
+      color: var(--azul);
+      margin: 14px 0 8px;
+    }
+    .login-caja p {
+      font-size: 13px;
+      color: var(--gris);
+      margin: 0;
+      line-height: 1.5;
+    }
+    #gLoginDiv {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .top {
+      position: relative;
+      background: linear-gradient(135deg, var(--azul-medio), var(--azul));
+      color: #fff;
+      padding: 22px 20px 26px;
+      border-bottom: 4px solid var(--dorado);
+      overflow: hidden;
+    }
+    .top::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 10px, transparent 10px 20px);
+      pointer-events: none;
+    }
+    .top-contenido {
+      position: relative;
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .top h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .top p {
+      margin: 4px 0 0;
+      font-size: 12px;
+      opacity: .85;
+    }
+    .logo-ev {
+      flex: none;
+      width: 52px;
+      height: 44px;
+      background: var(--azul-oscuro);
+      clip-path: polygon(0 0, 100% 0, 100% 68%, 50% 100%, 0 68%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: bold;
+      font-size: 15px;
+      letter-spacing: .5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,.25);
+    }
+    .login-caja .logo-ev {
+      margin: 0 auto;
+    }
+
+    .tabs {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 14px 20px 0;
+      display: flex;
+      gap: 6px;
+    }
+    .tab {
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: bold;
+      color: #fff;
+      background: rgba(255,255,255,.2);
+      border-radius: 6px 6px 0 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tab.activa {
+      background: #fff;
+      color: var(--azul);
+    }
+
+    .card {
+      background: #fff;
+      max-width: 480px;
+      margin: 0 auto 16px;
+      padding: 0 0 20px;
+      border-radius: 0 10px 10px 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.25);
+      overflow: hidden;
+    }
+    .card-header {
+      background: var(--gris-panel);
+      border-bottom: 1px solid var(--gris-borde);
+      padding: 10px 20px;
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--azul);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .card-body {
+      padding: 4px 20px 0;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--azul);
+      margin: 14px 0 4px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      font-size: 15px;
+      border: 1px solid var(--gris-borde);
+      border-radius: 4px;
+      background: #fff;
+      color: var(--texto);
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--azul);
+      box-shadow: 0 0 0 3px rgba(8,84,160,.15);
+    }
+    .info-material {
+      background: var(--azul-claro);
+      border-left: 3px solid var(--azul);
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 13px;
+      color: #333;
+      margin-top: 6px;
+      display: none;
+    }
+    .tipo-botones {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .tipo-btn {
+      flex: 1;
+      padding: 11px 4px;
+      text-align: center;
+      border-radius: 4px;
+      border: 2px solid var(--gris-borde);
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+      color: #555;
+      background: var(--gris-panel);
+    }
+    .tipo-btn.activo-entrada {
+      border-color: var(--verde);
+      background: #e9f7ec;
+      color: var(--verde);
+    }
+    .tipo-btn.activo-salida {
+      border-color: var(--rojo);
+      background: #fbeaea;
+      color: var(--rojo);
+    }
+    .tipo-btn.activo-devolucion {
+      border-color: var(--azul-medio);
+      background: var(--azul-claro);
+      color: var(--azul);
+    }
+    button#btnGuardar {
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--azul-oscuro);
+      background: linear-gradient(180deg, #f3bb51, var(--dorado));
+      border: 1px solid var(--dorado-oscuro);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button#btnGuardar:disabled {
+      background: #e8d3ab;
+      border-color: #d8c298;
+      color: #8a7a56;
+      cursor: not-allowed;
+    }
+    .mensaje {
+      margin: 14px 20px 0;
+      padding: 10px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      display: none;
+    }
+    .mensaje.ok {
+      background: #e9f7ec;
+      color: var(--verde);
+      border: 1px solid var(--verde);
+      display: block;
+    }
+    .mensaje.error {
+      background: #fbeaea;
+      color: var(--rojo);
+      border: 1px solid var(--rojo);
+      display: block;
+    }
+    .cargando {
+      text-align: center;
+      color: var(--gris);
+      font-size: 13px;
+      margin-top: 10px;
+      padding: 0 20px;
+    }
+    .campo-proyecto {
+      display: none;
+    }
+    .campo-proyecto.visible {
+      display: block;
+    }
+    .nota-proyecto {
+      font-size: 12px;
+      color: var(--gris);
+      margin-top: 4px;
+    }
+    .sesion {
+      margin-top: 16px;
+      background: var(--gris-panel);
+      border: 1px solid var(--gris-borde);
+      border-radius: 4px;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--gris);
+    }
+    .sesion b {
+      color: var(--texto);
+    }
+    .card-inventario {
+      display: none;
+    }
+    .fila-inline {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+    .fila-inline > div {
+      flex: 1;
+    }
+    .barra-inventario {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--gris);
+    }
+    .link-actualizar {
+      color: var(--azul);
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .tabla-inventario-wrap {
+      margin-top: 10px;
+      max-height: 360px;
+      overflow: auto;
+      border: 1px solid var(--gris-borde);
+      border-radius: 4px;
+    }
+    table.tabla-inventario {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    table.tabla-inventario thead th {
+      position: sticky;
+      top: 0;
+      background: var(--gris-panel);
+      color: var(--azul);
+      text-align: left;
+      padding: 8px 8px;
+      border-bottom: 1px solid var(--gris-borde);
+      z-index: 1;
+    }
+    table.tabla-inventario td {
+      padding: 7px 8px;
+      border-bottom: 1px solid #eef1f4;
+      vertical-align: top;
+    }
+    table.tabla-inventario td.num {
+      text-align: right;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+    .pill-bajo {
+      color: var(--rojo);
+      font-weight: bold;
+      font-size: 11px;
+    }
+    .pill-ok {
+      color: var(--verde);
+      font-size: 11px;
+    }
+    .sin-resultados {
+      text-align: center;
+      color: var(--gris);
+      font-size: 13px;
+      padding: 16px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ---------- Pantalla de inicio de sesion (visible al cargar) ---------- -->
+  <div id="pantallaLogin" class="pantalla-login">
+    <div class="login-caja">
+      <div class="logo-ev">EV</div>
+      <h1>ENERVISA &middot; Registro de Movimientos</h1>
+      <p>Inicia sesion con tu cuenta de Google autorizada para continuar.</p>
+      <div id="gLoginDiv"></div>
+      <div class="mensaje error" id="mensajeLogin"></div>
+    </div>
+  </div>
+
+  <!-- ---------- Contenido de la app (oculto hasta iniciar sesion) ---------- -->
+  <div id="appContenido" style="display:none;">
+
+    <div class="top">
+      <div class="top-contenido">
+        <div>
+          <h1>ENERVISA &middot; Registro de Movimientos</h1>
+          <p>Entradas, salidas y devoluciones de materiales de bodega</p>
+        </div>
+        <div class="logo-ev">EV</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab activa" id="tabMovimiento" data-tab="movimiento">Movimiento</div>
+      <div class="tab" id="tabInventario" data-tab="inventario">Inventario</div>
+    </div>
+
+    <div class="card" id="cardMovimiento">
+      <div class="card-header">Nuevo movimiento de inventario</div>
+      <div class="card-body">
+        <label>Tipo de movimiento</label>
+        <div class="tipo-botones">
+          <div class="tipo-btn" id="btnEntrada" data-tipo="Entrada">Entrada</div>
+          <div class="tipo-btn" id="btnSalida" data-tipo="Salida">Salida</div>
+          <div class="tipo-btn" id="btnDevolucion" data-tipo="Devolucion">Devolucion</div>
+        </div>
+
+        <label for="codigo">Codigo del producto</label>
+        <input list="lista-codigos" id="codigo" autocomplete="off" placeholder="Escribe el codigo o la descripcion...">
+        <datalist id="lista-codigos"></datalist>
+        <div class="info-material" id="infoMaterial"></div>
+
+        <label for="cantidad">Cantidad</label>
+        <input type="number" id="cantidad" min="0" step="any" placeholder="0">
+
+        <label for="bodega">Bodega</label>
+        <select id="bodega">
+          <option value="">Selecciona una bodega...</option>
+        </select>
+        <div class="nota-proyecto" id="notaBodega" style="display:none;"></div>
+
+        <div class="campo-proyecto" id="campoProyecto">
+          <label for="proyecto" id="labelProyecto">Proyecto al que se carga esta salida</label>
+          <select id="proyecto">
+            <option value="">Selecciona un proyecto...</option>
+          </select>
+          <div class="nota-proyecto" id="notaProyecto">Obligatorio en salidas: el material se descuenta de la bodega y se carga a este proyecto.</div>
+        </div>
+
+        <div class="campo-proyecto" id="campoEstadoProducto">
+          <label for="estadoProducto">Estado del producto que regresa</label>
+          <select id="estadoProducto">
+            <option value="">Selecciona el estado...</option>
+            <option value="BUENO">BUENO - vuelve a estar disponible en la bodega</option>
+            <option value="DEFECTUOSO">DEFECTUOSO - no vuelve a bodega, se gestiona con el proveedor</option>
+          </select>
+          <div class="nota-proyecto">Si esta defectuoso, no se vuelve a sumar a existencias y queda registrado aparte para gestionar su cambio con el proveedor o su destruccion.</div>
+        </div>
+
+        <button id="btnGuardar">Guardar movimiento</button>
+
+        <div class="sesion">Ingresando como <b id="sesionNombre"></b> (<span id="sesionCorreo"></span>)</div>
+      </div>
+
+      <div class="mensaje" id="mensaje"></div>
+      <div class="cargando" id="cargando" style="display:none;">Cargando catalogo...</div>
+    </div>
+
+    <div class="card card-inventario" id="cardInventario">
+      <div class="card-header">Existencia por bodega</div>
+      <div class="card-body">
+        <div class="fila-inline">
+          <div>
+            <label for="invBodega">Bodega</label>
+            <select id="invBodega">
+              <option value="">Todas las bodegas (total)</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="invBuscar">Buscar</label>
+        <input type="text" id="invBuscar" autocomplete="off" placeholder="Codigo o descripcion...">
+
+        <div class="barra-inventario">
+          <span id="invResumen"></span>
+          <span class="link-actualizar" id="btnActualizarInventario">Actualizar</span>
+        </div>
+        <div class="nota-proyecto">El Estado (BAJO STOCK / OK) se calcula sobre la existencia total en todas las bodegas, no solo la bodega seleccionada.</div>
+
+        <div class="tabla-inventario-wrap">
+          <table class="tabla-inventario">
+            <thead>
+              <tr>
+                <th>Codigo</th>
+                <th>Descripcion</th>
+                <th>Unidad</th>
+                <th style="text-align:right;">Existencia</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="cuerpoInventario"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mensaje" id="mensajeInventario"></div>
+      <div class="cargando" id="cargandoInventario" style="display:none;">Cargando inventario...</div>
+    </div>
+
+  </div>
+
+  <script>
+    // ================= Configuracion =================
+    // Client ID de OAuth (Google Cloud Console > Credenciales). No es secreto.
+    var GOOGLE_CLIENT_ID = '993427497005-9slvb5bgvvec0c0ks3i1c9mihdjf3cnj.apps.googleusercontent.com';
+    // URL del Web App de Apps Script (Deploy > Manage deployments > Web app),
+    // termina en /exec. REEMPLAZA esto con tu URL real despues de publicar.
+    var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxGxoG8bICYZ3rAHK8-WQs3VDd-AUZABG_jrrMwuTwObaflMOjHj81nvq7r_iXmA_yscQ/exec';
+
+    // ================= Estado de sesion =================
+    var ID_TOKEN = null;
+    var NOMBRE_USUARIO = '';
+    var CORREO_USUARIO = '';
+
+    var MATERIALES = [];   // [{codigo, descripcion, unidad}]
+    var MATERIALES_POR_CODIGO = {};
+    var tipoSeleccionado = null;
+    var INVENTARIO = null; // cache de la pestana Inventario: {bodegas: [...], materiales: [...]}
+    var PROYECTOS_SALIDA = [];     // proyectos EN PROCESO (para Salida)
+    var PROYECTOS_DEVOLUCION = []; // todos los proyectos, EN PROCESO o FINALIZADO (para Devolucion)
+    var TODAS_BODEGAS = [];        // todas las bodegas (solo se ven completas si BODEGA_ASIGNADA es "TODAS")
+    var BODEGA_ASIGNADA = 'TODAS'; // "TODAS" = sin restriccion; si no, solo esa bodega en cualquier movimiento
+
+    // ================= Inicio de sesion con Google =================
+
+    // Se llama cuando la libreria de Google (cargada en el <head>) esta lista.
+    window.onload = function () {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: manejarRespuestaGoogle
+      });
+      google.accounts.id.renderButton(
+        document.getElementById('gLoginDiv'),
+        { theme: 'filled_blue', size: 'large', text: 'signin_with', width: 280 }
+      );
+    };
+
+    // Decodifica (sin verificar firma) la parte de datos de un ID token, solo
+    // para mostrar nombre/correo en pantalla. La verificacion real y segura
+    // pasa siempre en el servidor (verificarTokenGoogle_ en Code.gs).
+    function decodificarJwt(token) {
+      try {
+        var payloadBase64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        var json = decodeURIComponent(atob(payloadBase64).split('').map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(json);
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function manejarRespuestaGoogle(respuesta) {
+      ID_TOKEN = respuesta.credential;
+      var datosToken = decodificarJwt(ID_TOKEN);
+      NOMBRE_USUARIO = datosToken.name || datosToken.email || '';
+      CORREO_USUARIO = datosToken.email || '';
+
+      document.getElementById('mensajeLogin').style.display = 'none';
+      document.getElementById('pantallaLogin').style.display = 'none';
+      document.getElementById('appContenido').style.display = 'block';
+      document.getElementById('sesionNombre').textContent = NOMBRE_USUARIO;
+      document.getElementById('sesionCorreo').textContent = CORREO_USUARIO;
+
+      cargarDatosIniciales();
+    }
+
+    // Se usa cuando el backend responde que el token vencio o no es valido
+    // (por ejemplo, la sesion de Google expiro despues de un rato de uso).
+    function mostrarPantallaLogin(mensaje) {
+      ID_TOKEN = null;
+      document.getElementById('appContenido').style.display = 'none';
+      document.getElementById('pantallaLogin').style.display = 'flex';
+      var msj = document.getElementById('mensajeLogin');
+      msj.style.display = 'block';
+      msj.textContent = mensaje || 'Tu sesion vencio. Inicia sesion de nuevo.';
+    }
+
+    // ================= Llamadas al backend (Apps Script) =================
+    // Reemplaza a google.script.run: ahora el formulario vive fuera de Apps
+    // Script, asi que habla con el backend por fetch(), mandando el token de
+    // Google en cada peticion. El Content-Type "text/plain" es a proposito
+    // (evita que el navegador mande una peticion OPTIONS de preflight, que
+    // Apps Script no sabe responder).
+    function llamarBackend(action, payload, onSuccess, onError) {
+      if (!ID_TOKEN) {
+        onError({ message: 'Tu sesion de Google no esta activa. Recarga la pagina e inicia sesion de nuevo.' });
+        return;
+      }
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ idToken: ID_TOKEN, action: action, payload: payload || {} })
+      })
+        .then(function (resp) { return resp.json(); })
+        .then(function (datos) {
+          if (datos && datos.error) {
+            if (datos.sesionExpirada) mostrarPantallaLogin(datos.error);
+            onError({ message: datos.error });
+          } else {
+            onSuccess(datos);
+          }
+        })
+        .catch(function (err) {
+          onError({ message: 'No se pudo conectar con el servidor: ' + err.message });
+        });
+    }
+
+    function cargarDatosIniciales() {
+      document.getElementById('cargando').style.display = 'block';
+      llamarBackend('getDatosFormulario', {}, function (datos) {
+        MATERIALES = datos.materiales || [];
+        llenarCodigos(MATERIALES);
+        TODAS_BODEGAS = datos.bodegas || [];
+        BODEGA_ASIGNADA = datos.bodegaAsignada || 'TODAS';
+        aplicarRestriccionBodega();
+        PROYECTOS_SALIDA = datos.proyectos || [];
+        PROYECTOS_DEVOLUCION = datos.proyectosDevolucion || [];
+        document.getElementById('cargando').style.display = 'none';
+      }, function (err) {
+        mostrarMensaje('error', 'No se pudo cargar el catalogo: ' + err.message);
+        document.getElementById('cargando').style.display = 'none';
+      });
+    }
+
+    function llenarCodigos(materiales) {
+      var datalist = document.getElementById('lista-codigos');
+      datalist.innerHTML = '';
+      materiales.forEach(function (m) {
+        MATERIALES_POR_CODIGO[m.codigo] = m;
+        var opt = document.createElement('option');
+        opt.value = m.codigo + ' - ' + m.descripcion;
+        datalist.appendChild(opt);
+      });
+    }
+
+    function llenarSelect(idSelect, valores, placeholder) {
+      var sel = document.getElementById(idSelect);
+      sel.innerHTML = '<option value="">' + placeholder + '</option>';
+      valores.forEach(function (v) {
+        var opt = document.createElement('option');
+        opt.value = v;
+        opt.textContent = v;
+        sel.appendChild(opt);
+      });
+    }
+
+    function elegirTipo(tipo) {
+      tipoSeleccionado = tipo;
+      document.getElementById('btnEntrada').className = 'tipo-btn' + (tipo === 'Entrada' ? ' activo-entrada' : '');
+      document.getElementById('btnSalida').className = 'tipo-btn' + (tipo === 'Salida' ? ' activo-salida' : '');
+      document.getElementById('btnDevolucion').className = 'tipo-btn' + (tipo === 'Devolucion' ? ' activo-devolucion' : '');
+
+      var campoProyecto = document.getElementById('campoProyecto');
+      var labelProyecto = document.getElementById('labelProyecto');
+      var notaProyecto = document.getElementById('notaProyecto');
+      var campoEstadoProducto = document.getElementById('campoEstadoProducto');
+
+      if (tipo === 'Salida') {
+        campoProyecto.className = 'campo-proyecto visible';
+        labelProyecto.textContent = 'Proyecto al que se carga esta salida';
+        notaProyecto.textContent = 'Obligatorio en salidas: el material se descuenta de la bodega y se carga a este proyecto.';
+        llenarSelect('proyecto', PROYECTOS_SALIDA, 'Selecciona un proyecto...');
+      } else if (tipo === 'Devolucion') {
+        campoProyecto.className = 'campo-proyecto visible';
+        labelProyecto.textContent = 'Proyecto del que regresa este material';
+        notaProyecto.textContent = 'Obligatorio en devoluciones: el material se suma de nuevo a la bodega y se resta del consumo de este proyecto. Se permite aunque el proyecto ya este FINALIZADO.';
+        llenarSelect('proyecto', PROYECTOS_DEVOLUCION, 'Selecciona un proyecto...');
+      } else {
+        campoProyecto.className = 'campo-proyecto';
+        document.getElementById('proyecto').value = ''; // una Entrada normal nunca lleva proyecto
+      }
+
+      // Estado del producto (BUENO/DEFECTUOSO): solo aplica a Devolucion.
+      campoEstadoProducto.className = 'campo-proyecto' + (tipo === 'Devolucion' ? ' visible' : '');
+      if (tipo !== 'Devolucion') document.getElementById('estadoProducto').value = '';
+
+      // La restriccion de bodega aplica igual sin importar el tipo elegido
+      // (Entrada, Salida o Devolucion), asi que no depende de "tipo": ver
+      // aplicarRestriccionBodega().
+      aplicarRestriccionBodega();
+    }
+
+    // Restriccion de bodega: si el usuario tiene una Bodega Asignada especifica
+    // (no "TODAS"), solo puede elegir esa bodega para CUALQUIER movimiento
+    // (Entrada, Salida o Devolucion). Con "TODAS" ve el listado completo.
+    function aplicarRestriccionBodega() {
+      var notaBodega = document.getElementById('notaBodega');
+      var bodegaActual = document.getElementById('bodega').value;
+      if (BODEGA_ASIGNADA !== 'TODAS') {
+        llenarSelect('bodega', [BODEGA_ASIGNADA], 'Selecciona una bodega...');
+        document.getElementById('bodega').value = BODEGA_ASIGNADA;
+        notaBodega.style.display = 'block';
+        notaBodega.textContent = 'Tu cuenta solo puede registrar movimientos en la bodega "' + BODEGA_ASIGNADA + '".';
+      } else {
+        llenarSelect('bodega', TODAS_BODEGAS, 'Selecciona una bodega...');
+        if (bodegaActual && TODAS_BODEGAS.indexOf(bodegaActual) !== -1) {
+          document.getElementById('bodega').value = bodegaActual;
+        }
+        notaBodega.style.display = 'none';
+        notaBodega.textContent = '';
+      }
+    }
+
+    function obtenerCodigoDesdeInput() {
+      var texto = document.getElementById('codigo').value.trim();
+      // el usuario puede escribir "01-001 - Aislador..." (del datalist) o solo el codigo
+      var codigoPosible = texto.split(' - ')[0].trim();
+      if (MATERIALES_POR_CODIGO[codigoPosible]) return codigoPosible;
+      return null;
+    }
+
+    document.getElementById('codigo').addEventListener('input', function () {
+      var codigo = obtenerCodigoDesdeInput();
+      var info = document.getElementById('infoMaterial');
+      if (codigo) {
+        var m = MATERIALES_POR_CODIGO[codigo];
+        info.style.display = 'block';
+        info.innerHTML = '<b>' + m.codigo + '</b> - ' + m.descripcion + ' &middot; Unidad: ' + m.unidad;
+      } else {
+        info.style.display = 'none';
+        info.innerHTML = '';
+      }
+    });
+
+    function mostrarMensaje(tipo, texto) {
+      var el = document.getElementById('mensaje');
+      el.className = 'mensaje ' + tipo;
+      el.textContent = texto;
+    }
+
+    function limpiarFormulario() {
+      document.getElementById('codigo').value = '';
+      document.getElementById('infoMaterial').style.display = 'none';
+      document.getElementById('cantidad').value = '';
+      document.getElementById('bodega').value = '';
+      document.getElementById('proyecto').value = '';
+      document.getElementById('campoProyecto').className = 'campo-proyecto';
+      document.getElementById('estadoProducto').value = '';
+      document.getElementById('campoEstadoProducto').className = 'campo-proyecto';
+      aplicarRestriccionBodega();
+      tipoSeleccionado = null;
+      document.getElementById('btnEntrada').className = 'tipo-btn';
+      document.getElementById('btnSalida').className = 'tipo-btn';
+      document.getElementById('btnDevolucion').className = 'tipo-btn';
+    }
+
+    function guardar() {
+      var codigo = obtenerCodigoDesdeInput();
+      var cantidad = parseFloat(document.getElementById('cantidad').value);
+      var bodega = document.getElementById('bodega').value;
+      var proyecto = document.getElementById('proyecto').value;
+      var estadoProducto = document.getElementById('estadoProducto').value;
+      var requiereProyecto = tipoSeleccionado === 'Salida' || tipoSeleccionado === 'Devolucion';
+
+      if (!tipoSeleccionado) return mostrarMensaje('error', 'Selecciona Entrada, Salida o Devolucion.');
+      if (!codigo) return mostrarMensaje('error', 'Selecciona un codigo valido de la lista.');
+      if (!cantidad || cantidad <= 0) return mostrarMensaje('error', 'Escribe una cantidad mayor a 0.');
+      if (!bodega) return mostrarMensaje('error', 'Selecciona una bodega.');
+      if (tipoSeleccionado === 'Salida' && !proyecto) return mostrarMensaje('error', 'En una Salida debes elegir el proyecto.');
+      if (tipoSeleccionado === 'Devolucion' && !proyecto) return mostrarMensaje('error', 'En una Devolucion debes elegir de que proyecto regresa el material.');
+      if (tipoSeleccionado === 'Devolucion' && !estadoProducto) return mostrarMensaje('error', 'En una Devolucion debes indicar el Estado del Producto (BUENO o DEFECTUOSO).');
+
+      var boton = document.getElementById('btnGuardar');
+      boton.disabled = true;
+      boton.textContent = 'Guardando...';
+
+      llamarBackend('registrarMovimiento', {
+        codigo: codigo,
+        tipo: tipoSeleccionado,
+        cantidad: cantidad,
+        bodega: bodega,
+        proyecto: requiereProyecto ? proyecto : '',
+        estadoProducto: tipoSeleccionado === 'Devolucion' ? estadoProducto : ''
+      }, function (resp) {
+        boton.disabled = false;
+        boton.textContent = 'Guardar movimiento';
+        if (resp.success) {
+          mostrarMensaje('ok', resp.message);
+          limpiarFormulario();
+        } else {
+          mostrarMensaje('error', resp.message);
+        }
+      }, function (err) {
+        boton.disabled = false;
+        boton.textContent = 'Guardar movimiento';
+        mostrarMensaje('error', 'Error inesperado: ' + err.message);
+      });
+    }
+
+    // ---------- Pestana "Inventario" (solo lectura) ----------
+
+    function mostrarTab(tab) {
+      var esMovimiento = tab === 'movimiento';
+      document.getElementById('tabMovimiento').className = 'tab' + (esMovimiento ? ' activa' : '');
+      document.getElementById('tabInventario').className = 'tab' + (esMovimiento ? '' : ' activa');
+      document.getElementById('cardMovimiento').style.display = esMovimiento ? 'block' : 'none';
+      document.getElementById('cardInventario').style.display = esMovimiento ? 'none' : 'block';
+      if (!esMovimiento && !INVENTARIO) {
+        cargarInventario(false);
+      }
+    }
+
+    function cargarInventario(forzar) {
+      if (INVENTARIO && !forzar) { renderTablaInventario(); return; }
+
+      document.getElementById('cargandoInventario').style.display = 'block';
+      var msj = document.getElementById('mensajeInventario');
+      msj.className = 'mensaje';
+      msj.textContent = '';
+
+      llamarBackend('obtenerInventario', {}, function (datos) {
+        INVENTARIO = datos;
+        var bodegaActual = document.getElementById('invBodega').value;
+        llenarSelect('invBodega', datos.bodegas || [], 'Todas las bodegas (total)');
+        if (bodegaActual && (datos.bodegas || []).indexOf(bodegaActual) !== -1) {
+          document.getElementById('invBodega').value = bodegaActual;
+        }
+        document.getElementById('cargandoInventario').style.display = 'none';
+        renderTablaInventario();
+      }, function (err) {
+        document.getElementById('cargandoInventario').style.display = 'none';
+        msj.className = 'mensaje error';
+        msj.textContent = 'No se pudo cargar el inventario: ' + err.message;
+      });
+    }
+
+    function renderTablaInventario() {
+      if (!INVENTARIO) return;
+      var bodegaSel = document.getElementById('invBodega').value;
+      var texto = document.getElementById('invBuscar').value.trim().toLowerCase();
+      var cuerpo = document.getElementById('cuerpoInventario');
+      cuerpo.innerHTML = '';
+
+      var filas = INVENTARIO.materiales.filter(function (m) {
+        if (!texto) return true;
+        return m.codigo.toLowerCase().indexOf(texto) !== -1 ||
+          m.descripcion.toLowerCase().indexOf(texto) !== -1;
+      });
+
+      filas = filas.slice().sort(function (a, b) {
+        var existA = bodegaSel ? (a.porBodega[bodegaSel] || 0) : a.total;
+        var existB = bodegaSel ? (b.porBodega[bodegaSel] || 0) : b.total;
+        return existB - existA;
+      });
+
+      if (!filas.length) {
+        cuerpo.innerHTML = '<tr><td colspan="5" class="sin-resultados">No se encontraron materiales.</td></tr>';
+      } else {
+        filas.forEach(function (m) {
+          var existencia = bodegaSel ? (m.porBodega[bodegaSel] || 0) : m.total;
+          var pill = m.estado === 'BAJO STOCK'
+            ? '<span class="pill-bajo">BAJO STOCK</span>'
+            : '<span class="pill-ok">OK</span>';
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' + m.codigo + '</td>' +
+            '<td>' + m.descripcion + '</td>' +
+            '<td>' + m.unidad + '</td>' +
+            '<td class="num">' + existencia + '</td>' +
+            '<td>' + pill + '</td>';
+          cuerpo.appendChild(tr);
+        });
+      }
+
+      document.getElementById('invResumen').textContent =
+        filas.length + ' de ' + INVENTARIO.materiales.length + ' materiales' +
+        (bodegaSel ? ' en ' + bodegaSel : ' (total, todas las bodegas)');
+    }
+
+    // ---------- Enlazar eventos ----------
+    document.getElementById('tabMovimiento').addEventListener('click', function () { mostrarTab('movimiento'); });
+    document.getElementById('tabInventario').addEventListener('click', function () { mostrarTab('inventario'); });
+
+    document.getElementById('btnEntrada').addEventListener('click', function () { elegirTipo(this.getAttribute('data-tipo')); });
+    document.getElementById('btnSalida').addEventListener('click', function () { elegirTipo(this.getAttribute('data-tipo')); });
+    document.getElementById('btnDevolucion').addEventListener('click', function () { elegirTipo(this.getAttribute('data-tipo')); });
+
+    document.getElementById('btnGuardar').addEventListener('click', guardar);
+
+    document.getElementById('invBodega').addEventListener('change', renderTablaInventario);
+    document.getElementById('invBuscar').addEventListener('input', renderTablaInventario);
+    document.getElementById('btnActualizarInventario').addEventListener('click', function () { cargarInventario(true); });
+  </script>
+</body>
 </html>
+
